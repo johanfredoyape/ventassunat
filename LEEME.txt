@@ -1,0 +1,220 @@
+SISTEMA DE VENTAS  ·  versión 0.6.0
+Solo HTML, CSS y JavaScript. Sin servidor.
+
+CÓMO ABRIRLO
+  1. Descomprime la carpeta.
+  2. Doble clic en index.html. Usa Chrome o Edge.
+  3. La primera vez te pide crear el usuario administrador.
+
+QUÉ INCLUYE ESTA ENTREGA
+  - Login con usuarios y dos roles: administrador y vendedor.
+  - Inicio: ventas de hoy y del mes, comprobantes por tipo, estado en SUNAT,
+    ventas de 12 meses, ventas recientes y stock bajo.
+  - Nueva venta: boleta, factura (contado o crédito con cuotas), nota de
+    venta y cotización. Emite en la API y descuenta stock.
+  - Comprobantes: listado por tipo con filtros por número, estado, fechas y
+    cliente; ficha con estado SUNAT, ítems, totales, PDF, ticket, XML, CDR,
+    reenvío, verificación en SUNAT y pagos.
+  - Notas de crédito y débito: se emiten desde la ficha de una boleta o
+    factura aceptada. La nota de crédito puede devolver productos al stock.
+  - Anulaciones: se piden desde la ficha. Facturas y sus notas van por
+    comunicación de baja; boletas, por resumen diario. La pantalla
+    Anulaciones muestra qué respondió SUNAT.
+  - Productos: catálogo, categorías, stock, stock mínimo y kardex.
+  - Clientes: listado, búsqueda, alta, edición y eliminación en la API.
+  - Configuración: conexión, diagnóstico de la API, respaldo de datos,
+    usuarios y cambio de contraseña.
+
+SI ACTUALIZAS DESDE UNA VERSIÓN ANTERIOR
+  Reemplaza toda la carpeta menos data/data.js. Tus usuarios y productos
+  siguen en el navegador; si vinculaste data.js, también están en ese archivo.
+
+CAMBIOS DE LA 0.6.0
+  Credenciales propias
+  - Configuración > Conexión: el administrador ingresa la URL de la API, la
+    API Key y el API Secret de su empresa. Antes de guardarlas se prueban
+    contra la API; si no funcionan, no se guardan.
+  - Se guardan solo en ese navegador y no van en los respaldos data.js. En
+    otro equipo hay que ingresarlas de nuevo.
+  - Si no hay credenciales ingresadas, se usan las de js/core/config.js.
+    Si tampoco hay ahí, el sistema pide ingresarlas.
+  - "Regenerar credenciales" pide a la API una API Key y un API Secret
+    nuevos. Los anteriores dejan de servir en todos los equipos; los nuevos
+    se guardan solos y se muestran una vez para copiarlos.
+  Nueva pantalla Empresa (solo administrador)
+  - Datos generales: razón social, nombre comercial, dirección, ubigeo,
+    departamento, provincia, distrito, teléfonos, correos, mensajes del
+    comprobante y webhook. El RUC no se cambia.
+  - SUNAT y régimen: entorno (pruebas o producción, con confirmación),
+    usuario y clave SOL, Client ID y Client Secret de guías, régimen
+    tributario (General, MYPE, RER, Nuevo RUS con categoría) y tasa de IGV
+    forzada. Las claves nunca se muestran; vacías se conservan.
+  - Logo y certificado: vista del logo actual, subir PNG o JPG y subir el
+    certificado .pfx con su contraseña.
+  - Sucursales y series: crear, editar y eliminar sucursales; crear series y
+    activarlas o desactivarlas (la API no permite borrarlas).
+  - Plan: suscripción vigente y uso del mes frente al límite.
+  - Solo se envía lo que cambió. Después de guardar, el sistema vuelve a
+    leer la empresa y avisa si la API no aplicó algún dato.
+  Sin confirmar con tu API (la colección no trae respuestas de ejemplo):
+  - Si PUT /empresa acepta sol_user, sol_pass y mensaje_promocional. Si no
+    los aplica, el sistema lo avisa al guardar.
+  - Qué devuelve POST /empresa/credenciales/regenerar: se leen api_key y
+    api_secret. Si no vienen, el sistema lo informa.
+  - No se ofrecen: registrar una empresa nueva (POST /registro) ni
+    contratar, cambiar o cancelar planes (pagos).
+
+CAMBIOS DE LA 0.5.0
+  Seguridad
+  - Contraseñas con PBKDF2-HMAC-SHA256 (120 000 vueltas) en lugar de
+    SHA-256 repetido. Los usuarios existentes no hacen nada: su contraseña
+    se convierte sola la próxima vez que ingresan.
+  - Contraseñas nuevas: mínimo 8 caracteres, con letras y números, y sin
+    contener el nombre de usuario. Las actuales siguen sirviendo.
+  - Tras 5 intentos fallidos el ingreso se pausa 30 s; cada ronda nueva
+    duplica la pausa, hasta 15 minutos. Abrir otra pestaña no la reinicia.
+  - La sesión se cierra sola tras 30 minutos sin uso (minutosInactividad
+    en js/core/config.js; 0 lo desactiva).
+  - Los permisos se verifican también dentro de cada operación, no solo
+    en la pantalla: un vendedor no puede crear usuarios, editar productos,
+    ajustar stock, eliminar pagos, importar respaldos, emitir notas ni anular.
+  - Importar un respaldo descarta usuarios mal formados y datos que intenten
+    alterar el funcionamiento interno. Si el respaldo no trae un
+    administrador activo, se conservan los usuarios actuales.
+  - Solo se abren enlaces https que entregue la API. El sistema no se deja
+    mostrar dentro de otra página y no envía su dirección a sitios externos.
+  Interfaz
+  - Diseño nuevo, plano: sin sombras ni degradados, bordes finos y un
+    solo color de acento. Mejor contraste en textos secundarios.
+  - Tablas, tablero de inicio y panel de venta en marcos de línea fina.
+  - Ver u ocultar la contraseña y aviso de Bloq Mayús activado.
+  - Revisado en anchos de 320, 390, 820, 1024 y 1366 px sin barras de
+    desplazamiento horizontal. En el teléfono los diálogos se apoyan abajo
+    y los campos usan letra de 16 px para que la página no se acerque sola.
+  - Menú de íconos en tablet con nombres para lectores de pantalla.
+
+CAMBIOS DE LA 0.4.0
+  - Nuevo bloque "Corregir o anular" al final de la ficha de cada boleta,
+    factura o nota aceptada.
+  - Nota de crédito con los motivos 01, 02, 04, 05, 06, 07, 08, 09 y 10 del
+    catálogo 09; nota de débito con los motivos 01, 02 y 03 del catálogo 10.
+    La serie de la nota se elige sola: empieza con F si modifica una factura
+    y con B si modifica una boleta.
+  - Anular pide motivo y confirma. El comprobante sigue vigente hasta que
+    SUNAT acepta; ahí pasa a "Anulado" y, si lo marcaste, vuelve el stock.
+  - Por defecto, solo el administrador emite notas y anula. Para permitirlo
+    a los vendedores: correccionesSoloAdmin: false en js/core/config.js.
+  - El enlace "Modifica a" de una nota lleva al comprobante original.
+
+CAMBIOS DE LA 0.3.0
+  - Corregido: el estado SUNAT se lee de "sunat.estado", como lo entrega la
+    API. Antes no se reconocía "aceptado" y el botón CDR quedaba apagado.
+  - Tras emitir, el sistema abre la ficha del comprobante y consulta el
+    estado hasta que SUNAT responde.
+  - Los nombres de campos se ajustaron al informe de diagnóstico del
+    7 de octubre de 2026.
+
+LO QUE TODAVÍA NO ESTÁ CONFIRMADO CON TU API
+  - Notas y anulaciones se probaron contra un simulador armado con tus
+    respuestas reales, no contra la API. Lo que se envía copia los ejemplos
+    de tu colección de Postman.
+  - Anulación de boletas: se envía fecha_resumen = fecha de emisión de la
+    boleta. Si tu API espera la fecha de hoy, cambia una línea en
+    js/services/anulaciones.js (función cuerpo).
+  - Anulación de facturas: se envía fecha_generacion = fecha de emisión del
+    comprobante y fecha_comunicacion = hoy.
+  - Respuestas de POST /anulaciones, POST /resumenes y GET /{id}/estado: se
+    leen con los nombres del listado. Si no traen el estado, el sistema se
+    guía por el estado del propio comprobante.
+  - Paginación de /anulaciones y /resumenes: se envía page y por_pagina.
+  - Anular una nota emitida sobre una boleta: tu colección no lo documenta,
+    así que el sistema no lo ofrece.
+  - Motivos que piden datos no documentados (cuotas, exportación, IVAP) y
+    la corrección de descripción (03) quedaron fuera.
+  - La ficha no trae la afectación de IGV por ítem: la nota la deduce del
+    IGV de cada línea. Si el comprobante tiene ítems exonerados o
+    inafectos, la pantalla deja corregirla antes de emitir.
+  - Notas de venta y cotizaciones: no tenías registros, así que su listado y
+    ficha usan los mismos campos que boletas y facturas.
+  - Filtros de fecha y cliente fuera de facturas: tu colección solo los
+    documenta para facturas.
+  - Métodos de pago: solo se ofrecen "efectivo" y "transferencia", que son
+    los que aparecen en la colección.
+  - Verificar en SUNAT (/consultar-cpe): se muestra la respuesta tal cual.
+  - El descuento por línea baja el precio unitario que se envía. No usa los
+    campos de descuento de la API hasta confirmar cómo los interpreta.
+  - Si la emisión no recibe respuesta, el sistema no reintenta solo: pide
+    revisar en Comprobantes si el documento se creó, para no duplicarlo.
+
+FALTA CONSTRUIR
+  Corrección de rechazados, reportes y guías de remisión.
+
+SI ALGO NO CONECTA
+  Entra a Configuración > Conexión y pulsa "Ejecutar diagnóstico".
+  Hace solo consultas de lectura: no emite ni modifica nada.
+  - Si la primera prueba falla, la API no tiene CORS habilitado para
+    llamadas desde el navegador. Al abrir con doble clic el origen es "null":
+    la API debe responder  Access-Control-Allow-Origin: *  y permitir los
+    headers X-Api-Key, X-Api-Secret, Content-Type y Accept.
+  - Si pasa pero una pantalla falla, descarga el informe y compártelo:
+    muestra la forma real de las respuestas, sin credenciales.
+
+DÓNDE ESTÁN LAS CREDENCIALES DE LA API
+  Se ingresan en Configuración > Conexión y quedan en ese navegador.
+  Como respaldo opcional, js/core/config.js puede tener valores por defecto;
+  lo recomendado es dejarlos vacíos para que la carpeta no lleve secretos.
+  Sin servidor, quien use este equipo puede verlas con las herramientas
+  del navegador. No publiques la carpeta en internet con credenciales
+  de producción.
+
+CÓMO SE GUARDAN LOS DATOS
+  Clientes y comprobantes: en la API.
+  Usuarios, productos, categorías, stock, kardex y el registro de
+  anulaciones pedidas: en este equipo.
+    - data/data.js    datos iniciales; se cargan al abrir.
+    - Navegador       copia de trabajo (localStorage); se guarda al instante.
+    - Respaldo        Configuración > Datos y respaldo:
+                        · "Vincular data.js": eliges una vez el archivo
+                          data/data.js y el sistema lo sobrescribe con cada
+                          cambio (Chrome y Edge de computadora).
+                        · "Exportar data.js": descarga el archivo; reemplaza
+                          con él data/data.js.
+  Si data/data.js es más nuevo que la copia del navegador, gana data.js.
+  Por eso copiar la carpeta a otro equipo lleva los datos consigo.
+  Borrar los datos del navegador sin respaldo borra el inventario.
+
+SOBRE EL LOGIN
+  Las contraseñas se guardan en hash (PBKDF2), no en texto.
+  Al no haber servidor, el login ordena quién usa el sistema y qué ve cada
+  rol, pero no protege frente a alguien con acceso a los archivos.
+  La sesión se cierra sola a las 12 horas, tras 30 minutos sin uso o al
+  cerrar la pestaña.
+  Si olvidas la contraseña del único administrador: abre data/data.js (o tu
+  último respaldo), deja  "usuarios": []  y reemplaza data/data.js; al abrir,
+  el sistema pedirá crear un administrador nuevo. Antes borra los datos del
+  sitio en el navegador para que tome el archivo.
+
+ESTRUCTURA
+  index.html              única página; las pantallas cambian con #/ruta
+  data/data.js            datos iniciales y respaldo
+  assets/css              fuente.css, base.css, layout.css, componentes.css
+  assets/vendor           DataTables 3.1.3 y Responsive 4.1.1 (sin jQuery)
+  js/core                 config, util, errors, api, datos, sesion, router
+  js/domain               validaciones, catálogos SUNAT, totales, estados
+  js/ui                   iconos, avisos, formularios, diálogos, tabla, marco,
+                          visor de archivos, gráfico
+  js/services             empresa, series, comprobantes, notas, anulaciones,
+                          panel, productos, clientes, diagnóstico
+  js/pages                login, inicio, venta, comprobantes, notas,
+                          anulaciones, productos, clientes, configuración
+  js/app.js               arranque
+
+  Reglas del código:
+    - Solo js/core/api.js llama a fetch().
+    - Solo js/core/datos.js toca localStorage y archivos.
+    - Los datos se pintan con textContent; en tablas, con App.util.esc().
+
+LICENCIAS DE TERCEROS
+  DataTables y Responsive: MIT, SpryMedia Ltd.
+  Archivo (fuente): SIL Open Font License 1.1.
+  Lucide (íconos): ISC.
